@@ -43,8 +43,12 @@ def move(event):
 def printList(pixleList):
     for i in pixleList:
         print(i)
+
+#converts a 2D Array to a list
+def convertToList
+
 #converts a list into a 2d array
-def convert2D(ourList):
+def convertTo2D(ourList):
     #vars
     x, y = 0, 0
     temArr = [[0 for x in range(row)] for y in range(row)]
@@ -62,15 +66,18 @@ def convert2D(ourList):
             
     #return our array
     return temArr
+
 # gets a list from the sense hat and converts to a 2darray
 def getArr():
-    x = 1
+    ourArr = convert2D(sense.get_pixels())
+    return ourArr
+    
 ##############################################################
     # the 'main'
 #Clear out the sense hat
 sense.clear()
 
-ourArr = convert2D(sense.get_pixels())
+ourArr = convertTo2D(sense.get_pixels())
 printList(ourArr)
 
 #define what happens when the user presses left or right

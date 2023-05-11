@@ -45,8 +45,12 @@ def printList(pixleList):
         print(i)
 
 #converts a 2D Array to a list
-def convertToList
-
+def convertToList(ourArr):
+    temList = []
+    for x in range(row):
+        for y in range(row):
+            temList.append(ourArr[x][y])
+    return temList
 #converts a list into a 2d array
 def convertTo2D(ourList):
     #vars
@@ -71,22 +75,23 @@ def convertTo2D(ourList):
 def getArr():
     ourArr = convert2D(sense.get_pixels())
     return ourArr
-    
+
+#function to do some things on startup
+def start():
+    #Clear out the sense hat
+    sense.clear()
+
+    #define what happens when the user presses left or right
+    sense.stick.direction_left = move
+    sense.stick.direction_right = move
+
+
+    #Has tetris scroll across the screen
+    sense.show_message("Tetris", 0.1 ,(255, 0, 0))
 ##############################################################
     # the 'main'
-#Clear out the sense hat
-sense.clear()
 
-ourArr = convertTo2D(sense.get_pixels())
-printList(ourArr)
-
-#define what happens when the user presses left or right
-sense.stick.direction_left = move
-sense.stick.direction_right = move
-
-
-#Has tetris scroll across the screen
-sense.show_message("Tetris", 0.1 ,(255, 0, 0))
+start()
 
 #Now get a list of pixles (Should be all blank)
 ourPixles = sense.get_pixels()

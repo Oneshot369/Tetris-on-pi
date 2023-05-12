@@ -38,11 +38,28 @@ def move(event):
                 print("moving left")
                 ourPixles[x] = reset
                 ourPixles[x - 1] = white
+                
+#moves the pixle down
+def moveDown(x, y, ourArr):
+    #checks if we would go out of bounds and does nothing if we would
+    if x != row-1:
+        ourArr[x][y] = reset
+        ourArr[x + 1][y] = white
 
-#prints out our list of pixles
-def printList(pixleList):
-    for i in pixleList:
-        print(i)
+#moves the pixle left
+def moveLeft(x, y, ourArr):
+    #checks if we would go out of bounds and does nothing if we would
+    if y != 0:
+        ourArr[x][y] = reset
+        ourArr[x][y-1] = white
+
+#moves the pixle right
+def moveRight(x, y, ourArr):
+    #checks if we would go out of bounds and does nothing if we would
+    if y != row-1:
+        ourArr[x][y] = reset
+        ourArr[x][y+1] = white
+
 ################################################
         #the following methods are for converting between 2d arr and list and setting a 2d Arr to the pixles
 
@@ -99,9 +116,13 @@ def start():
 
 
     #Has tetris scroll across the screen
-    sense.show_message("Tetris", 0.1 , blue, red)
+    sense.show_message("Tetris", 0.1 , blue)
     sense.clear()
-
+    
+#prints out our list of pixles
+def printList(pixleList):
+    for i in pixleList:
+        print(i)
 ##############################################################
     # the 'main'
 
@@ -130,8 +151,7 @@ while is_bottom == False:
                     is_bottom = True
                 else:
                     #remove the top pixle and move it one below
-                    ourArr[x][y] = reset
-                    ourArr[x + 1][y] = white
+                    moveRight(x, y, ourArr)
                     setPixles(ourArr)
                     #this gives us a pause after each move
                     time.sleep(speed)

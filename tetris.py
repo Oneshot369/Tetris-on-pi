@@ -5,12 +5,12 @@ import time
 ################################################
     #lets Define some vars
 row = 8
-bottom_row = 56
 speed = 2
 
 #RGB colors
 white = (255, 255, 255)
 blue  = (0, 0, 255)
+red  = (255, 0, 0)
 reset = (0, 0, 0)
 
 #This is our SenseHat object
@@ -20,7 +20,7 @@ sense = SenseHat()
 ourArr = [[0 for x in range(row)] for y in range(row)]
 
 #######################################################
-    #define some methods
+    #this section is for moving pixles (DOES NOT WORK CUS STUPID)
 #move mothod - this does not work yet
 def move(event):
     print("move method")
@@ -43,6 +43,8 @@ def move(event):
 def printList(pixleList):
     for i in pixleList:
         print(i)
+################################################
+        #the following methods are for converting between 2d arr and list and setting a 2d Arr to the pixles
 
 #converts a 2D Array to a list
 def convertToList(ourArr):
@@ -51,6 +53,7 @@ def convertToList(ourArr):
         for y in range(row):
             temList.append(ourArr[x][y])
     return temList
+
 #converts a list into a 2d array
 def convertTo2D(ourList):
     #vars
@@ -73,9 +76,18 @@ def convertTo2D(ourList):
 
 # gets a list from the sense hat and converts to a 2darray
 def getArr():
-    ourArr = convert2D(sense.get_pixels())
+    ourArr = convertTo2D(sense.get_pixels())
     return ourArr
 
+#sets a 2D array into the sense hat
+def setPixles(our2D):
+    #covert our 2D to a list
+    pixleList = convertToList(our2D)
+    #set the list to pixles
+    sense.set_pixels(pixleList)
+    
+##############################################
+    
 #function to do some things on startup
 def start():
     #Clear out the sense hat
@@ -87,18 +99,20 @@ def start():
 
 
     #Has tetris scroll across the screen
-    sense.show_message("Tetris", 0.1 ,(255, 0, 0))
+    sense.show_message("Tetris", 0.1 , blue, red)
+    sense.clear()
+
 ##############################################################
     # the 'main'
 
 start()
 
 #Now get a list of pixles (Should be all blank)
-ourPixles = sense.get_pixels()
+ourArr = convertTo2D(sense.get_pixels())
 
 #assign a starting pixle
-ourPixles[3] = white
-sense.set_pixels(ourPixles)
+ourArr[0][3] = white
+setPixles(ourArr)
 
 time.sleep(speed)
 
@@ -106,20 +120,21 @@ is_bottom = False
         
 #keep repeting untill we reach the bottom
 while is_bottom == False:
-    #keep track of our position
-    index = 0;
+
     #loop thru our list
-    for x in ourPixles:
-        if x == white:
-            if index >= bottom_row:
-                is_bottom = True
-            else:
-                #remove the top pixle and move it one below
-                ourPixles[index] = reset
-                ourPixles[index + row] = white
-                sense.set_pixels(ourPixles)
-                #this gives us a pause after each move
-                time.sleep(speed)
-        index += 1
+    for x in range(row):
+        for y in range(row):
+            #get our Array
+            if ourArr[x][y] == white:
+                if x >= row-1:
+                    is_bottom = True
+                else:
+                    #remove the top pixle and move it one below
+                    ourArr[x][y] = reset
+                    ourArr[x + 1][y] = white
+                    setPixles(ourArr)
+                    #this gives us a pause after each move
+                    time.sleep(speed)
+
 print("Done")
 

@@ -13,6 +13,6 @@ from sense_emu import SenseHat
 - To
 ``` python
 #this imports us a SenseHat object
-from sense_hat impoty SenseHat
+from sense_hat import SenseHat
 ```
 Now the code will run on the physical SenseHat

@@ -151,7 +151,7 @@ while is_bottom == False:
                     is_bottom = True
                 else:
                     #remove the top pixle and move it one below
-                    moveRight(x, y, ourArr)
+                    moveDown(x, y, ourArr)
                     setPixles(ourArr)
                     #this gives us a pause after each move
                     time.sleep(speed)

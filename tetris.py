@@ -1,6 +1,7 @@
 #This imports us a SenseHat object 
 from sense_emu import SenseHat
 import time
+import threading
 
 ################################################
     #lets Define some vars
@@ -16,6 +17,12 @@ reset = (0, 0, 0)
 #This is our SenseHat object
 sense = SenseHat()
 
+#x and y of our block
+xBlock = 0
+yBlock = 0
+
+#a mutex
+lock = threading.Lock()
 #this is our 2 d array 64 lights
 ourArr = [[0 for x in range(row)] for y in range(row)]
 
@@ -40,26 +47,47 @@ def move(event):
                 ourPixles[x - 1] = white
                 
 #moves the pixle down
-def moveDown(x, y, ourArr):
-    #checks if we would go out of bounds and does nothing if we would
-    if x != row-1:
-        ourArr[x][y] = reset
-        ourArr[x + 1][y] = white
-
+def moveDown():
+    global xBlock
+    global yBlock
+    
+    print(str(xBlock), str(yBlock))
+    
+    #waits to get a lock
+    with lock:
+        #checks if we would go out of bounds and does nothing if we would
+        if xBlock != row-1:
+            ourArr[xBlock][yBlock] = reset
+            ourArr[xBlock + 1][yBlock] = white
+            xBlock = xBlock +1
+    setPixles(ourArr)
+    
 #moves the pixle left
-def moveLeft(x, y, ourArr):
-    #checks if we would go out of bounds and does nothing if we would
-    if y != 0:
-        ourArr[x][y] = reset
-        ourArr[x][y-1] = white
-
+def moveLeft():
+    global xBlock
+    global yBlock
+    
+    #waits to get a lock
+    with lock:
+        #checks if we would go out of bounds and does nothing if we would
+        if yBlock != 0:
+            ourArr[xBlock][yBlock] = reset
+            ourArr[xBlock][yBlock-1] = white
+            yBlock = yBlock-1
+            
 #moves the pixle right
-def moveRight(x, y, ourArr):
-    #checks if we would go out of bounds and does nothing if we would
-    if y != row-1:
-        ourArr[x][y] = reset
-        ourArr[x][y+1] = white
-
+def moveRight():
+    global xBlock
+    global yBlock
+    
+    #waits to get a lock
+    with lock:
+        #checks if we would go out of bounds and does nothing if we would
+        if yBlock != row-1:
+            ourArr[xBlock][yBlock] = reset
+            ourArr[xBlock][yBlock+1] = white
+            yBlock = yBlock+1
+            
 ################################################
         #the following methods are for converting between 2d arr and list and setting a 2d Arr to the pixles
 
@@ -111,18 +139,27 @@ def start():
     sense.clear()
 
     #define what happens when the user presses left or right
-    sense.stick.direction_left = move
-    sense.stick.direction_right = move
+    sense.stick.direction_left = moveLeft
+    sense.stick.direction_right = moveRight
 
 
     #Has tetris scroll across the screen
     sense.show_message("Tetris", 0.1 , blue)
     sense.clear()
     
+def spawnBlock():
+    #assign a starting pixle
+    ourArr[0][3] = white
+    global xBlock
+    global yBlock
+    xBlock = 0
+    yBlock = 3
+    print(str(xBlock), str(yBlock))
 #prints out our list of pixles
 def printList(pixleList):
     for i in pixleList:
         print(i)
+        
 ##############################################################
     # the 'main'
 
@@ -131,8 +168,7 @@ start()
 #Now get a list of pixles (Should be all blank)
 ourArr = convertTo2D(sense.get_pixels())
 
-#assign a starting pixle
-ourArr[0][3] = white
+spawnBlock()
 setPixles(ourArr)
 
 time.sleep(speed)
@@ -141,20 +177,15 @@ is_bottom = False
         
 #keep repeting untill we reach the bottom
 while is_bottom == False:
-
-    #loop thru our list
-    for x in range(row):
-        for y in range(row):
-            #get our Array
-            if ourArr[x][y] == white:
-                if x >= row-1:
-                    is_bottom = True
-                else:
-                    #remove the top pixle and move it one below
-                    moveRight(x, y, ourArr)
-                    setPixles(ourArr)
-                    #this gives us a pause after each move
-                    time.sleep(speed)
+    print("main " + str(xBlock) + str(yBlock))
+    if xBlock >= row-1:
+        is_bottom = True
+    else:
+        #remove the top pixle and move it one below
+        moveDown()
+        setPixles(ourArr)
+        #this gives us a pause after each move
+        time.sleep(speed)
 
 print("Done")
 

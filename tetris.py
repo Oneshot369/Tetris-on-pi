@@ -177,7 +177,6 @@ is_bottom = False
         
 #keep repeting untill we reach the bottom
 while is_bottom == False:
-<<<<<<< HEAD
     print("main " + str(xBlock) + str(yBlock))
     if xBlock >= row-1:
         is_bottom = True
@@ -187,22 +186,6 @@ while is_bottom == False:
         setPixles(ourArr)
         #this gives us a pause after each move
         time.sleep(speed)
-=======
-
-    #loop thru our list
-    for x in range(row):
-        for y in range(row):
-            #get our Array
-            if ourArr[x][y] == white:
-                if x >= row-1:
-                    is_bottom = True
-                else:
-                    #remove the top pixle and move it one below
-                    moveDown(x, y, ourArr)
-                    setPixles(ourArr)
-                    #this gives us a pause after each move
-                    time.sleep(speed)
->>>>>>> 344c006fee19296ef09588edd9c44c0064264174
 
 print("Done")
 

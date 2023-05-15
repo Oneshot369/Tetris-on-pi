@@ -147,7 +147,8 @@ def start():
     #Has tetris scroll across the screen
     sense.show_message("Tetris", 0.1 , blue)
     sense.clear()
-    
+
+#spawns a new block at the top of our arr
 def spawnBlock():
     #assign a starting pixle
     ourArr[0][3] = white
@@ -155,12 +156,24 @@ def spawnBlock():
     global yBlock
     xBlock = 0
     yBlock = 3
-    print(str(xBlock), str(yBlock))
+    setPixles()
+    
 #prints out our list of pixles
 def printList(pixleList):
     for i in pixleList:
         print(i)
-        
+
+#checks if the block is at the bottom row or if its on another block
+def checkStop():
+    global xBlock
+    global yBlock
+    #check if we are on the bottom row
+    if xBlock >= row-1:
+        return True
+    #check if the space below is full
+    if ourArr[xBlock+1][yBlock] == white:
+        return True
+    return False
 ##############################################################
     # the 'main'
 
@@ -179,10 +192,11 @@ is_bottom = False
 #keep repeting untill we reach the bottom
 while is_bottom == False:
     print("main " + str(xBlock) + str(yBlock))
-    if xBlock >= row-1:
-        is_bottom = True
+    if checkStop():
+        #spawn in a new block
+        spawnBlock()
     else:
-        #remove the top pixle and move it one below
+        #move our block down one
         moveDown()
         #this gives us a pause after each move
         time.sleep(speed)

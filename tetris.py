@@ -12,6 +12,7 @@ speed = 2
 white = (255, 255, 255)
 blue  = (0, 0, 255)
 red  = (255, 0, 0)
+green = (0, 255, 0)
 reset = (0, 0, 0)
 
 #This is our SenseHat object
@@ -23,35 +24,28 @@ yBlock = 0
 
 #a mutex
 lock = threading.Lock()
+
+#the joystick calls the method to move a block twice
+#I think this is because the joystick counts pushing it
+#down and up as two, but im not sure
+
+#to fix this I use a boolean to toggle the method so it only gets called once
+toggleLeft = True
+toggleRight = True
+
 #this is our 2 d array 64 lights
 ourArr = [[0 for x in range(row)] for y in range(row)]
 
 #######################################################
-    #this section is for moving pixles (DOES NOT WORK CUS STUPID)
-#move mothod - this does not work yet
-def move(event):
-    print("move method")
-    #get our list
-    ourPixles = sense.get_pixels()
-    printList(ourPixles)
-    for x in ourPixles:
-        if x == white:
-            #move right
-            if event.direction == "right":
-                print("moving right")
-                ourPixles[x] = reset
-                ourPixles[x + 1] = white
-            else:
-                print("moving left")
-                ourPixles[x] = reset
-                ourPixles[x - 1] = white
-                
+    #this section is for moving pixles (WORKS CUS ME SMART)
+
+
+
 #moves the pixle down
 def moveDown():
     global xBlock
     global yBlock
     
-    print(str(xBlock), str(yBlock))
     
     #waits to get a lock
     with lock:
@@ -60,34 +54,40 @@ def moveDown():
             ourArr[xBlock][yBlock] = reset
             ourArr[xBlock + 1][yBlock] = white
             xBlock = xBlock +1
-    setPixles(ourArr)
+    setPixles()
     
 #moves the pixle left
 def moveLeft():
     global xBlock
     global yBlock
+    global toggleLeft
     
-    #waits to get a lock
-    with lock:
-        #checks if we would go out of bounds and does nothing if we would
-        if yBlock != 0:
-            ourArr[xBlock][yBlock] = reset
-            ourArr[xBlock][yBlock-1] = white
-            yBlock = yBlock-1
-            
+    if toggleLeft:
+        #waits to get a lock
+        with lock:
+            #checks if we would go out of bounds and does nothing if we would
+            if yBlock != 0:
+                ourArr[xBlock][yBlock] = reset
+                ourArr[xBlock][yBlock-1] = white
+                yBlock = yBlock-1
+        setPixles()
+    toggleLeft = not toggleLeft    
 #moves the pixle right
 def moveRight():
     global xBlock
     global yBlock
+    global toggleRight
     
-    #waits to get a lock
-    with lock:
-        #checks if we would go out of bounds and does nothing if we would
-        if yBlock != row-1:
-            ourArr[xBlock][yBlock] = reset
-            ourArr[xBlock][yBlock+1] = white
-            yBlock = yBlock+1
-            
+    if toggleRight:
+        #waits to get a lock
+        with lock:
+            #checks if we would go out of bounds and does nothing if we would
+            if yBlock != row-1:
+                ourArr[xBlock][yBlock] = reset
+                ourArr[xBlock][yBlock+1] = white
+                yBlock = yBlock+1
+        setPixles()
+    toggleRight = not toggleRight
 ################################################
         #the following methods are for converting between 2d arr and list and setting a 2d Arr to the pixles
 
@@ -125,9 +125,10 @@ def getArr():
     return ourArr
 
 #sets a 2D array into the sense hat
-def setPixles(our2D):
+def setPixles():
     #covert our 2D to a list
-    pixleList = convertToList(our2D)
+    global ourArr
+    pixleList = convertToList(ourArr)
     #set the list to pixles
     sense.set_pixels(pixleList)
     
@@ -169,7 +170,7 @@ start()
 ourArr = convertTo2D(sense.get_pixels())
 
 spawnBlock()
-setPixles(ourArr)
+setPixles()
 
 time.sleep(speed)
 
@@ -183,7 +184,6 @@ while is_bottom == False:
     else:
         #remove the top pixle and move it one below
         moveDown()
-        setPixles(ourArr)
         #this gives us a pause after each move
         time.sleep(speed)
 

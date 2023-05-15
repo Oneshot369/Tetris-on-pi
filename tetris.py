@@ -32,6 +32,7 @@ lock = threading.Lock()
 #to fix this I use a boolean to toggle the method so it only gets called once
 toggleLeft = True
 toggleRight = True
+toggleDown = True
 
 #this is our 2 d array 64 lights
 ourArr = [[0 for x in range(row)] for y in range(row)]
@@ -41,7 +42,7 @@ ourArr = [[0 for x in range(row)] for y in range(row)]
 
 
 
-#moves the pixle down
+#moves the pixle down one space
 def moveDown():
     global xBlock
     global yBlock
@@ -56,6 +57,24 @@ def moveDown():
             xBlock = xBlock +1
     setPixles()
     
+#moves the block down, but this is for the joystick
+def moveDownPush():
+    global xBlock
+    global yBlock
+    global toggleDown
+    
+    if toggleDown:
+        #waits to get a lock
+        with lock:
+            if xBlock != row-1:
+                #checks if we would go out of bounds and does nothing if we would
+                if ourArr[xBlock + 1][yBlock] != white:
+                    ourArr[xBlock][yBlock] = reset
+                    ourArr[xBlock + 1][yBlock] = white
+                    xBlock = xBlock +1
+        setPixles()
+    toggleDown = not toggleDown
+    
 #moves the pixle left
 def moveLeft():
     global xBlock
@@ -65,11 +84,13 @@ def moveLeft():
     if toggleLeft:
         #waits to get a lock
         with lock:
-            #checks if we would go out of bounds and does nothing if we would
+            #checks if the left block is empty
             if yBlock != 0:
-                ourArr[xBlock][yBlock] = reset
-                ourArr[xBlock][yBlock-1] = white
-                yBlock = yBlock-1
+                #checks if we would go out of bounds and does nothing if we would
+                if ourArr[xBlock][yBlock-1] != white:
+                    ourArr[xBlock][yBlock] = reset
+                    ourArr[xBlock][yBlock-1] = white
+                    yBlock = yBlock-1
         setPixles()
     toggleLeft = not toggleLeft    
 #moves the pixle right
@@ -81,11 +102,13 @@ def moveRight():
     if toggleRight:
         #waits to get a lock
         with lock:
-            #checks if we would go out of bounds and does nothing if we would
+            #checks if the right block is empty
             if yBlock != row-1:
-                ourArr[xBlock][yBlock] = reset
-                ourArr[xBlock][yBlock+1] = white
-                yBlock = yBlock+1
+                #checks if we would go out of bounds and does nothing if we would
+                if ourArr[xBlock][yBlock+1] != white:
+                    ourArr[xBlock][yBlock] = reset
+                    ourArr[xBlock][yBlock+1] = white
+                    yBlock = yBlock+1
         setPixles()
     toggleRight = not toggleRight
 ################################################
@@ -142,7 +165,7 @@ def start():
     #define what happens when the user presses left or right
     sense.stick.direction_left = moveLeft
     sense.stick.direction_right = moveRight
-
+    sense.stick.direction_down = moveDownPush
 
     #Has tetris scroll across the screen
     sense.show_message("Tetris", 0.1 , blue)
@@ -151,9 +174,11 @@ def start():
 #spawns a new block at the top of our arr
 def spawnBlock():
     #assign a starting pixle
-    ourArr[0][3] = white
     global xBlock
     global yBlock
+    global ourArr
+    
+    ourArr[0][3] = white
     xBlock = 0
     yBlock = 3
     setPixles()
@@ -163,7 +188,7 @@ def printList(pixleList):
     for i in pixleList:
         print(i)
 
-#checks if the block is at the bottom row or if its on another block
+#checks if the block is at the bottom row or if its above another block
 def checkStop():
     global xBlock
     global yBlock
@@ -174,6 +199,31 @@ def checkStop():
     if ourArr[xBlock+1][yBlock] == white:
         return True
     return False
+
+#clears any full rows
+def clearRows():
+    #loop thru the rows
+    for x in range(row):
+        fullRow = True
+        #if the first square is not white skip checking the rest for that row
+        if ourArr[x][0] == white:
+            for y in range(row):
+                #if we find a square thats not white set full row to false
+                if ourArr[x][y] != white:
+                    fullRow = False
+            #if row is full clear it
+            if fullRow:
+                removeRow(x)
+
+#sets the row to reset
+def removeRow(rowToRemove):
+    for y in range(row):
+        ourArr[rowToRemove][y] = reset
+    blockGravity(rowToRemove)
+
+#makes all the blocks fall down
+def blockGravity(rowToStart):
+    x=1
 ##############################################################
     # the 'main'
 
@@ -198,6 +248,8 @@ while is_bottom == False:
     else:
         #move our block down one
         moveDown()
+        #check if there is a full row and clears it
+        clearRows()
         #this gives us a pause after each move
         time.sleep(speed)
 

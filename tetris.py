@@ -201,6 +201,9 @@ def checkStop():
         return True
     return False
 
+#################################################
+#row methods - this is for anything to do with moving, clearing or anything else to do with rows
+
 #clears any full rows
 def clearRows():
     #loop thru the rows
@@ -224,19 +227,27 @@ def removeRow(rowToRemove):
 
 #makes all the blocks fall down
 def blockGravity(rowToStart):
-    #if we are at the top of our arr, just return no gravity needed
+    #if we are at the top of our arr, just automaticly move that row down one
     if rowToStart == 0:
+        moveRowDown(0)
         return
     #we want to loop thru the row above rowToStart
     for y in range(row):
         #if we find a white block we know we need to move the whole row down
         if ourArr[rowToStart-1][y] == white:
             #move our row down
-            moveRowDown()
+            moveRowDown(rowToStart-1)
+            blockGravity(rowToStart - 1)
             break
         #if we have not found a white we can stop
         else:
             return
+
+def moveRowDown(RowToMove):
+    if RowToMove == (row -1):
+        return
+    for y in range(row):
+        if ourArr[R][] ==
 ##############################################################
     # the 'main'
 

@@ -239,15 +239,16 @@ def blockGravity(rowToStart):
             moveRowDown(rowToStart-1)
             blockGravity(rowToStart - 1)
             break
-        #if we have not found a white we can stop
-        else:
-            return
-
+        
+#moves the row above into the row below
 def moveRowDown(RowToMove):
     if RowToMove == (row -1):
         return
     for y in range(row):
-        if ourArr[R][] ==
+        if ourArr[RowToMove][y] == white:
+            ourArr[RowToMove -1][y] = white
+            ourArr[RowToMove][y] = reset
+        
 ##############################################################
     # the 'main'
 
@@ -274,6 +275,7 @@ while is_bottom == False:
         moveDown()
         #check if there is a full row and clears it
         clearRows()
+        
         setPixles()
         #this gives us a pause after each move
         time.sleep(speed)

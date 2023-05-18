@@ -6,7 +6,7 @@ import threading
 ################################################
     #lets Define some vars
 row = 8
-speed = 2
+speed = 1
 
 #RGB colors
 white = (255, 255, 255)
@@ -182,6 +182,7 @@ def spawnBlock():
     xBlock = 0
     yBlock = 3
     setPixles()
+    time.sleep(1)
     
 #prints out our list of pixles
 def printList(pixleList):
@@ -223,7 +224,19 @@ def removeRow(rowToRemove):
 
 #makes all the blocks fall down
 def blockGravity(rowToStart):
-    x=1
+    #if we are at the top of our arr, just return no gravity needed
+    if rowToStart == 0:
+        return
+    #we want to loop thru the row above rowToStart
+    for y in range(row):
+        #if we find a white block we know we need to move the whole row down
+        if ourArr[rowToStart-1][y] == white:
+            #move our row down
+            moveRowDown()
+            break
+        #if we have not found a white we can stop
+        else:
+            return
 ##############################################################
     # the 'main'
 
@@ -250,6 +263,7 @@ while is_bottom == False:
         moveDown()
         #check if there is a full row and clears it
         clearRows()
+        setPixles()
         #this gives us a pause after each move
         time.sleep(speed)
 

@@ -235,7 +235,7 @@ def blockGravity(rowToStart):
     for y in range(row):
         #if we find a white block we know we need to move the whole row down
         if ourArr[rowToStart-1][y] == white:
-            #move our row down
+            #move our row down       
             moveRowDown(rowToStart-1)
             blockGravity(rowToStart - 1)
             break
@@ -246,9 +246,9 @@ def moveRowDown(RowToMove):
         return
     for y in range(row):
         if ourArr[RowToMove][y] == white:
-            ourArr[RowToMove -1][y] = white
+            ourArr[RowToMove + 1][y] = white
             ourArr[RowToMove][y] = reset
-        
+   
 ##############################################################
     # the 'main'
 

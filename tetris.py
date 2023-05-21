@@ -223,6 +223,7 @@ def clearRows():
 def removeRow(rowToRemove):
     for y in range(row):
         ourArr[rowToRemove][y] = reset
+    setPixles()
     blockGravity(rowToRemove)
 
 #makes all the blocks fall down
@@ -239,6 +240,7 @@ def blockGravity(rowToStart):
             moveRowDown(rowToStart-1)
             blockGravity(rowToStart - 1)
             break
+    setPixles()
         
 #moves the row above into the row below
 def moveRowDown(RowToMove):

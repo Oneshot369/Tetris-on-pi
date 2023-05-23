@@ -25,6 +25,9 @@ yBlock = 0
 #a mutex
 lock = threading.Lock()
 
+#our blocks
+straitBlock = [(0,0), (0,1), (-1,0), (-1,-1)]
+test = straitBlock[1][0]
 #the joystick calls the method to move a block twice
 #I think this is because the joystick counts pushing it
 #down and up as two, but im not sure

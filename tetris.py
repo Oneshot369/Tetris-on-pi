@@ -25,9 +25,20 @@ yBlock = 0
 #a mutex
 lock = threading.Lock()
 
-#our blocks
-straitBlock = [(0,0), (0,1), (-1,0), (-1,-1)]
-test = straitBlock[1][0]
+#our blocks types
+
+#the line block is 3 block long and a strait line
+
+# - - - - - - - -  |   - - - X - - - -
+# - - X X X - - -  or  - - - X - - - -
+# - - - - - - - -  |   - - - X - - - -
+
+#im not sure how to implemet the rotation and idea would just to have another var with the rotated quardenets (idk how to spell)
+# or i could just flip the x,y cords
+lineBlock = [(0,0), (0,1), (0,-1)]
+
+currentBlockType = lineBlock
+
 #the joystick calls the method to move a block twice
 #I think this is because the joystick counts pushing it
 #down and up as two, but im not sure
@@ -42,9 +53,107 @@ ourArr = [[0 for x in range(row)] for y in range(row)]
 
 #######################################################
     #this section is for moving pixles (WORKS CUS ME SMART)
+#--------------------------------------
+    #these are for moving a whole block
+#moves down a whole block
+def moveDownBlock():
+    global xBlock
+    global yBlock
+    global currentBlockType
+    isValid = True
+    
+    #waits to get a lock
+    with lock:
+        for x in currentBlockType:
+            #checks if we would go out of bounds and sets isValid to false if we would
+            if (xBlock + x[0]) >= row-1:
+                isValid = False
+        #if we wont go out of bounds we move our block
+        if isValid:
+            for x in currentBlockType:
+                ourArr[xBlock + x[0]][yBlock + x[1]] = reset
+            for x in currentBlockType:
+                ourArr[xBlock + 1 + x[0]][yBlock + x[1]] = white
+            xBlock = xBlock +1
+    setPixles()
 
+#moves a whole block left
+def moveLeftBlock():
+    global xBlock
+    global yBlock
+    global toggleLeft
+    global currentBlockType
+    isValid = True
+    
+    if toggleLeft:
+        #waits to get a lock
+        with lock:
+            for x in currentBlockType:
+                #checks if we would go out of bounds and sets isValid to false if we would
+                if (yBlock + x[1]) <= 0:
+                    isValid = False
+            #moves all pixles left one
+            if isValid:
+                for x in currentBlockType:
+                    ourArr[xBlock + x[0]][yBlock + x[1]] = reset
+                for x in currentBlockType:
+                    ourArr[xBlock + x[0]][yBlock + x[1] - 1] = white
+                yBlock = yBlock -1
+        setPixles()
+    toggleLeft = not toggleLeft
 
+#moves a whole block right   
+def moveRightBlock():
+    global xBlock
+    global yBlock
+    global toggleRight
+    global currentBlockType
+    isValid = True
+    
+    if toggleRight:
+        #waits to get a lock
+        with lock:
+            #loops thru our block
+            for x in currentBlockType:
+                #checks if we would go out of bounds and sets isValid to false if we would
+                if (yBlock + x[1]) >= row-1:
+                    isValid = False
+            #moves all pixles left one
+            if isValid:
+                for x in currentBlockType:
+                    ourArr[xBlock + x[0]][yBlock + x[1]] = reset
+                for x in currentBlockType:
+                    ourArr[xBlock + x[0]][yBlock + x[1] + 1] = white
+                yBlock = yBlock + 1
+        setPixles()
+    toggleRight = not toggleRight
 
+#moves a whole block down by one
+def moveDownPushBlock():
+    global xBlock
+    global yBlock
+    global toggleDown
+    isValid = True
+    
+    if toggleDown:
+        #waits to get a lock
+        with lock:
+            for x in currentBlockType:
+                #checks if we would go out of bounds and sets isValid to false if we would
+                if (xBlock + x[0]) >= row-1:
+                    isValid = False
+            #if we wont go out of bounds we move our block
+            if isValid:
+                for x in currentBlockType:
+                    ourArr[xBlock + x[0]][yBlock + x[1]] = reset
+                for x in currentBlockType:
+                    ourArr[xBlock + 1 + x[0]][yBlock + x[1]] = white
+                xBlock = xBlock +1
+        setPixles()
+    toggleDown = not toggleDown
+    
+#--------------------------------------
+    #these are for miving a single pixle
 #moves the pixle down one space
 def moveDown():
     global xBlock
@@ -166,15 +275,34 @@ def start():
     sense.clear()
 
     #define what happens when the user presses left or right
-    sense.stick.direction_left = moveLeft
-    sense.stick.direction_right = moveRight
-    sense.stick.direction_down = moveDownPush
+    sense.stick.direction_left = moveLeftBlock
+    sense.stick.direction_right = moveRightBlock
+    sense.stick.direction_down = moveDownPushBlock
 
     #Has tetris scroll across the screen
     sense.show_message("Tetris", 0.1 , blue)
     sense.clear()
+    
+#spawns a new block type at the top of our arr
+def spawnBlockType(blockType):
+    #assign a starting pixle
+    global xBlock
+    global yBlock
+    global ourArr
+    #this is the point we will spawn the block in
+    spawnPoint = (0,3)
+    
+    #loop thru the block type and assign the pixles
+    for x in blockType:
+        #the x +
+        ourArr[x[0] + spawnPoint[0]][x[1] + spawnPoint[1]] = white
+    ourArr[0][3] = white
+    xBlock = 0
+    yBlock = 3
+    setPixles()
+    time.sleep(1)
 
-#spawns a new block at the top of our arr
+#spawns a single new block at the top of our arr
 def spawnBlock():
     #assign a starting pixle
     global xBlock
@@ -191,6 +319,21 @@ def spawnBlock():
 def printList(pixleList):
     for i in pixleList:
         print(i)
+
+#checks if the block is at the bottom row or if its above another block
+def checkStopBlock():
+    global xBlock
+    global yBlock
+    global currentBlockType
+    #check if we are on the bottom row
+    if xBlock >= row-1:
+        return True
+    #check if the space below ourBlock is full
+    for x in currentBlockType:
+        #checks is the space below is white
+        if (ourArr[xBlock + x[0] + 1][yBlock + x[1]]) == white:
+            return True
+    return False
 
 #checks if the block is at the bottom row or if its above another block
 def checkStop():
@@ -263,7 +406,7 @@ start()
 #Now get a list of pixles (Should be all blank)
 ourArr = convertTo2D(sense.get_pixels())
 
-spawnBlock()
+spawnBlockType(lineBlock)
 setPixles()
 
 time.sleep(speed)
@@ -273,12 +416,12 @@ is_bottom = False
 #keep repeting untill we reach the bottom
 while is_bottom == False:
     print("main " + str(xBlock) + str(yBlock))
-    if checkStop():
+    if checkStopBlock():
         #spawn in a new block
-        spawnBlock()
+        spawnBlockType(lineBlock)
     else:
         #move our block down one
-        moveDown()
+        moveDownBlock()
         #check if there is a full row and clears it
         clearRows()
         

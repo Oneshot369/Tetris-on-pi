@@ -1,5 +1,6 @@
 #This imports us a SenseHat object 
 from sense_emu import SenseHat
+from Board import Board
 import time
 import threading
 
@@ -85,22 +86,23 @@ def moveLeftBlock():
     global currentBlockType
     isValid = True
     
-    if toggleLeft:
-        #waits to get a lock
-        with lock:
-            for x in currentBlockType:
-                #checks if we would go out of bounds and sets isValid to false if we would
-                if (yBlock + x[1]) <= 0:
-                    isValid = False
-            #moves all pixles left one
-            if isValid:
+    if leftClear():
+        if toggleLeft:
+            #waits to get a lock
+            with lock:
                 for x in currentBlockType:
-                    ourArr[xBlock + x[0]][yBlock + x[1]] = reset
-                for x in currentBlockType:
-                    ourArr[xBlock + x[0]][yBlock + x[1] - 1] = white
-                yBlock = yBlock -1
-        setPixles()
-    toggleLeft = not toggleLeft
+                    #checks if we would go out of bounds and sets isValid to false if we would
+                    if (yBlock + x[1]) <= 0:
+                        isValid = False
+                #moves all pixles left one
+                if isValid:
+                    for x in currentBlockType:
+                        ourArr[xBlock + x[0]][yBlock + x[1]] = reset
+                    for x in currentBlockType:
+                        ourArr[xBlock + x[0]][yBlock + x[1] - 1] = white
+                    yBlock = yBlock -1
+            setPixles()
+        toggleLeft = not toggleLeft
 
 #moves a whole block right   
 def moveRightBlock():
@@ -110,23 +112,24 @@ def moveRightBlock():
     global currentBlockType
     isValid = True
     
-    if toggleRight:
-        #waits to get a lock
-        with lock:
-            #loops thru our block
-            for x in currentBlockType:
-                #checks if we would go out of bounds and sets isValid to false if we would
-                if (yBlock + x[1]) >= row-1:
-                    isValid = False
-            #moves all pixles left one
-            if isValid:
+    if rightClear():
+        if toggleRight:
+            #waits to get a lock
+            with lock:
+                #loops thru our block
                 for x in currentBlockType:
-                    ourArr[xBlock + x[0]][yBlock + x[1]] = reset
-                for x in currentBlockType:
-                    ourArr[xBlock + x[0]][yBlock + x[1] + 1] = white
-                yBlock = yBlock + 1
-        setPixles()
-    toggleRight = not toggleRight
+                    #checks if we would go out of bounds and sets isValid to false if we would
+                    if (yBlock + x[1]) >= row-1:
+                        isValid = False
+                #moves all pixles left one
+                if isValid:
+                    for x in currentBlockType:
+                        ourArr[xBlock + x[0]][yBlock + x[1]] = reset
+                    for x in currentBlockType:
+                        ourArr[xBlock + x[0]][yBlock + x[1] + 1] = white
+                    yBlock = yBlock + 1
+            setPixles()
+        toggleRight = not toggleRight
 
 #moves a whole block down by one
 def moveDownPushBlock():
@@ -134,22 +137,22 @@ def moveDownPushBlock():
     global yBlock
     global toggleDown
     isValid = True
-    
-    if toggleDown:
-        #waits to get a lock
-        with lock:
-            for x in currentBlockType:
-                #checks if we would go out of bounds and sets isValid to false if we would
-                if (xBlock + x[0]) >= row-1:
-                    isValid = False
-            #if we wont go out of bounds we move our block
-            if isValid:
+    if not checkStopBlock():
+        if toggleDown:
+            #waits to get a lock
+            with lock:
                 for x in currentBlockType:
-                    ourArr[xBlock + x[0]][yBlock + x[1]] = reset
-                for x in currentBlockType:
-                    ourArr[xBlock + 1 + x[0]][yBlock + x[1]] = white
-                xBlock = xBlock +1
-        setPixles()
+                    #checks if we would go out of bounds and sets isValid to false if we would
+                    if (xBlock + x[0]) >= row-1:
+                        isValid = False
+                #if we wont go out of bounds we move our block
+                if isValid:
+                    for x in currentBlockType:
+                        ourArr[xBlock + x[0]][yBlock + x[1]] = reset
+                    for x in currentBlockType:
+                        ourArr[xBlock + 1 + x[0]][yBlock + x[1]] = white
+                    xBlock = xBlock +1
+            setPixles()
     toggleDown = not toggleDown
     
 #--------------------------------------
@@ -319,6 +322,35 @@ def spawnBlock():
 def printList(pixleList):
     for i in pixleList:
         print(i)
+
+def rightClear():
+    global xBlock
+    global yBlock
+    global currentBlockType
+    #check if we are on the bottom row
+    if xBlock >= row-1:
+        return True
+    #check if the space below ourBlock is full
+    for x in currentBlockType:
+        #checks is the space below is white
+        if (ourArr[xBlock + x[0]][yBlock + x[1]+1]) == white:
+            return True
+    return False
+
+#checks if the left is clear
+def leftClear():
+    global xBlock
+    global yBlock
+    global currentBlockType
+    #check if we are on the left colunm 
+    if xBlock >= 0:
+        return True
+    #check if the space below ourBlock is full
+    for x in currentBlockType:
+        #checks is the space below is white
+        if (ourArr[xBlock + x[0]][yBlock + x[1]-1]) == white:
+            return True
+    return False
 
 #checks if the block is at the bottom row or if its above another block
 def checkStopBlock():

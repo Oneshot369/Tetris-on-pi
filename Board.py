@@ -3,10 +3,10 @@ class Board:
     ##Define some stuff first
     #these are private
     row = 8
-    ourArr = [[0 for x in range(row)] for y in range(row)]
+    ourArr = [[0 for x in range(8)] for y in range(8)]
     
     #initalization methos(when you create the object)
-     def __init__():
+    def __init__():
          xBlock = 0
          yBlock = 0
 

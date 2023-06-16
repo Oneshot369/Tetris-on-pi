@@ -9,6 +9,11 @@ import threading
 row = 8
 speed = 1
 
+#This is our SenseHat object
+sense = SenseHat()
+
+#initalize our board
+board = Board(sense)
 #RGB colors
 white = (255, 255, 255)
 blue  = (0, 0, 255)
@@ -16,8 +21,7 @@ red  = (255, 0, 0)
 green = (0, 255, 0)
 reset = (0, 0, 0)
 
-#This is our SenseHat object
-sense = SenseHat()
+
 
 #x and y of our block
 xBlock = 0
@@ -278,9 +282,9 @@ def start():
     sense.clear()
 
     #define what happens when the user presses left or right
-    sense.stick.direction_left = moveLeftBlock
-    sense.stick.direction_right = moveRightBlock
-    sense.stick.direction_down = moveDownPushBlock
+    sense.stick.direction_left = Board.moveLeftBlock
+    sense.stick.direction_right = Board.moveRightBlock
+    sense.stick.direction_down = Board.moveDownPushBlock
 
     #Has tetris scroll across the screen
     sense.show_message("Tetris", 0.1 , blue)
@@ -435,10 +439,8 @@ def moveRowDown(RowToMove):
 
 start()
 
-#Now get a list of pixles (Should be all blank)
-ourArr = convertTo2D(sense.get_pixels())
 
-spawnBlockType(lineBlock)
+board.spawnBlockType(lineBlock)
 setPixles()
 
 time.sleep(speed)
@@ -448,16 +450,16 @@ is_bottom = False
 #keep repeting untill we reach the bottom
 while is_bottom == False:
     print("main " + str(xBlock) + str(yBlock))
-    if checkStopBlock():
+    if board.checkStopBlock():
         #spawn in a new block
-        spawnBlockType(lineBlock)
+        board.spawnBlockType(lineBlock)
     else:
         #move our block down one
-        moveDownBlock()
+        board.moveDownBlock()
         #check if there is a full row and clears it
-        clearRows()
+        board.clearRows()
         
-        setPixles()
+        board.setPixles()
         #this gives us a pause after each move
         time.sleep(speed)
 

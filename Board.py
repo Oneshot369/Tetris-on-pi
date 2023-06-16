@@ -1,3 +1,5 @@
+import threading
+from sense_emu import SenseHat
 class Board:
     
     ##Define some stuff first
@@ -5,23 +7,46 @@ class Board:
     row = 8
     ourArr = [[0 for x in range(8)] for y in range(8)]
     
+    lineBlock = [(0,0), (0,1), (0,-1)]
+
+    currentBlockType = lineBlock
+    #to fix this I use a boolean to toggle the method so it only gets called once
+    toggleLeft = True
+    toggleRight = True
+    toggleDown = True
+
+    #RGB colors
+    white = (255, 255, 255)
+    blue  = (0, 0, 255)
+    red  = (255, 0, 0)
+    green = (0, 255, 0)
+    reset = (0, 0, 0)
+    
+    #a mutex
+    lock = threading.Lock()
+    
+    xBlock = 0
+    yBlock = 0
+    
+    sense = None
     #initalization methos(when you create the object)
-    def __init__():
-         xBlock = 0
-         yBlock = 0
+    #these will be public
+    def __init__(self, ourHat):
+        #This is our SenseHat object
+        sense = ourHat
 
 ######################################        
     #Conversion methods
     #converts a 2D Array to a list
-    def convertToList(ourArr):
+    def convertToList(self, ourArr):
         temList = []
-        for x in range(row):
-            for y in range(row):
+        for x in range(self.row):
+            for y in range(self.row):
                 temList.append(ourArr[x][y])
         return temList
 
     #converts a list into a 2d array
-    def convertTo2D(ourList):
+    def convertTo2D(self, ourList):
         #vars
         x, y = 0, 0
         temArr = [[0 for x in range(row)] for y in range(row)]
@@ -41,37 +66,32 @@ class Board:
         return temArr
 
     # gets a list from the sense hat and converts to a 2darray
-    def getArr():
+    def getArr(self):
         ourArr = convertTo2D(sense.get_pixels())
         return ourArr
 
     #sets a 2D array into the sense hat
-    def setPixles():
-        #covert our 2D to a list
-        global ourArr
-        pixleList = convertToList(ourArr)
+    def setPixles(self):
+        pixleList = self.convertToList(self.ourArr)
         #set the list to pixles
-        sense.set_pixels(pixleList)
-    toggleLeft = True
-    toggleRight = True
-    toggleDown = True
+        self.sense.set_pixels(pixleList)
 
     #######################################################
         #this section is for moving pixles 
     #--------------------------------------
         #these are for moving a whole block
     #moves down a whole block
-    def moveDownBlock():
+    def moveDownBlock(self):
         global xBlock
         global yBlock
         global currentBlockType
         isValid = True
         
         #waits to get a lock
-        with lock:
-            for x in currentBlockType:
+        with self.lock:
+            for x in self.currentBlockType:
                 #checks if we would go out of bounds and sets isValid to false if we would
-                if (xBlock + x[0]) >= row-1:
+                if (self.xBlock + x[0]) >= row-1:
                     isValid = False
             #if we wont go out of bounds we move our block
             if isValid:
@@ -83,7 +103,7 @@ class Board:
         setPixles()
 
     #moves a whole block left
-    def moveLeftBlock():
+    def moveLeftBlock(self):
         global xBlock
         global yBlock
         global toggleLeft
@@ -109,7 +129,7 @@ class Board:
             toggleLeft = not toggleLeft
 
     #moves a whole block right   
-    def moveRightBlock():
+    def moveRightBlock(self):
         global xBlock
         global yBlock
         global toggleRight
@@ -136,7 +156,7 @@ class Board:
             toggleRight = not toggleRight
 
     #moves a whole block down by one
-    def moveDownPushBlock():
+    def moveDownPushBlock(self):
         global xBlock
         global yBlock
         global toggleDown
@@ -158,8 +178,26 @@ class Board:
                         xBlock = xBlock +1
                 setPixles()
         toggleDown = not toggleDown
+        
+    #spawns a block of a certain block type 
+    def spawnBlockType(self, blockType):
+        #assign a starting pixle
+        white = self.white
+        ourArr = self.ourArr
+        #this is the point we will spawn the block in
+        spawnPoint = (0,3)
+        
+        #loop thru the block type and assign the pixles
+        for x in blockType:
+            #the x +
+            ourArr[x[0] + spawnPoint[0]][x[1] + spawnPoint[1]] = white
+        ourArr[0][3] = white
+        self.xBlock = 0
+        self.yBlock = 3
+        self.setPixles()
+        time.sleep(1)
     #Checks right if it is clear
-    def rightClear():
+    def rightClear(self):
         global xBlock
         global yBlock
         global currentBlockType
@@ -174,7 +212,7 @@ class Board:
         return False
 
     #checks if the left is clear
-    def leftClear():
+    def leftClear(self):
         global xBlock
         global yBlock
         global currentBlockType
@@ -189,7 +227,7 @@ class Board:
         return False
 
     #checks if the block is at the bottom row or if its above another block
-    def checkStopBlock():
+    def checkStopBlock(self):
         global xBlock
         global yBlock
         global currentBlockType
@@ -204,7 +242,7 @@ class Board:
         return False
 
     #checks if the block is at the bottom row or if its above another block
-    def checkStop():
+    def checkStop(self):
         global xBlock
         global yBlock
         #check if we are on the bottom row
@@ -219,7 +257,7 @@ class Board:
     #row methods - this is for anything to do with moving, clearing or anything else to do with rows
 
     #clears any full rows
-    def clearRows():
+    def clearRows(self):
         #loop thru the rows
         for x in range(row):
             fullRow = True
@@ -234,14 +272,14 @@ class Board:
                     removeRow(x)
 
     #sets the row to reset
-    def removeRow(rowToRemove):
+    def removeRow(self, rowToRemove):
         for y in range(row):
             ourArr[rowToRemove][y] = reset
         setPixles()
         blockGravity(rowToRemove)
 
     #makes all the blocks fall down
-    def blockGravity(rowToStart):
+    def blockGravity(self, rowToStart):
         #if we are at the top of our arr, just automaticly move that row down one
         if rowToStart == 0:
             moveRowDown(0)
@@ -257,7 +295,7 @@ class Board:
         setPixles()
             
     #moves the row above into the row below
-    def moveRowDown(RowToMove):
+    def moveRowDown(self, RowToMove):
         if RowToMove == (row -1):
             return
         for y in range(row):
